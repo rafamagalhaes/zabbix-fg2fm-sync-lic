@@ -1,2 +1,2 @@
-*/5 * * * * /scripts/crtempfilesync.sh
-0 1 * * * /scripts/crtempfilelic.sh
+*/5 * * * * /scripts/crtempfilesync.sh <FORTIMANAGER_USER> <FORTIMANAGER_PASSWORD>
+0 1 * * * /scripts/crtempfilelic.sh <FORTIMANAGER_USER> <FORTIMANAGER_PASSWORD>
