@@ -15,26 +15,26 @@
 print_usage() {
   echo ""
   echo "If you need check Fortigate sync with a Fortimanager:"
-  echo "Usage: $0 [--sync] [fortigate_ip] [fortigate_snmp_community] [fortimanager_ssh_user] [fortimanager_ssh_password]"
+  echo "Usage: $0 [--sync] [fortigate_ip] [fortigate_snmp_community]"
   echo ""
   echo "If you need check the Fortigate license is OK:"
-  echo "Usage: $0 [--lic] [fortigate_ip] [fortigate_snmp_community] [fortimanager_ssh_user] [fortimanager_ssh_password] [License_Type]"
+  echo "Usage: $0 [--lic] [fortigate_ip] [fortigate_snmp_community] [License_Type]"
   echo ""
   echo "If you need to know the time left for the Fortigate's license expire:"
-  echo "Usage: $0 [--licexp] [fortigate_ip] [fortigate_snmp_community] [fortimanager_ssh_user] [fortimanager_ssh_password] [License_Type]"
+  echo "Usage: $0 [--licexp] [fortigate_ip] [fortigate_snmp_community] [License_Type]"
   echo ""
   echo "If you need to check a connection with Fortigate and Fortimanager:"
-  echo "Usage: $0 [--discovery] [fortigate_ip] [fortigate_snmp_community] [fortimanager_ssh_user] [fortimanager_ssh_password]"
+  echo "Usage: $0 [--discovery] [fortigate_ip] [fortigate_snmp_community]"
   echo ""
   echo "If you need to make a license type discovery on the Fortigate:"
-  echo "Usage: $0 [--conn] [fortigate_ip] [fortigate_snmp_community] [fortimanager_ssh_user] [fortimanager_ssh_password]"
+  echo "Usage: $0 [--conn] [fortigate_ip] [fortigate_snmp_community]"
   echo ""
   exit 3
 }
 
 check_sync() {
   fgserial=(`snmpwalk -v2c -c $community $ip $fnSysSerial | awk -F': ' '{print $2}' | tr -d '"'`)
-  chksync=(`sshpass -p $pass ssh -q -o StrictHostKeyChecking=no $user@177.154.136.140 diagnose dvm device list | grep -A2 $fgserial | grep cond: | awk -F': ' '{print $5}' | awk -F';' '{print $1}'`)
+  chksync=(`cat /var/tmp/zabbix/fortimanagersync.tmp | grep -A2 $fgserial | grep cond: | awk -F': ' '{print $5}' | awk -F';' '{print $1}'`)
   if [ "$chksync" == "OK" ]; then
     echo 1
   else
@@ -44,7 +44,7 @@ check_sync() {
 
 check_conn() {
   fgserial=(`snmpwalk -v2c -c $community $ip $fnSysSerial | awk -F': ' '{print $2}' | tr -d '"'`)  
-  chkconn=(`sshpass -p $pass ssh -q -o StrictHostKeyChecking=no $user@177.154.136.140 diagnose dvm device list | grep -A2 $fgserial | grep conn: | awk -F': ' '{print $7}'`)
+  chkconn=(`cat /var/tmp/zabbix/fortimanagersync.tmp | grep -A2 $fgserial | grep conn: | awk -F': ' '{print $7}'`)
   if [ "$chkconn" == "up" ]; then
     echo 1
   else
@@ -62,9 +62,9 @@ echo '{"data":['
 let count=0;
 
 fgserial=(`snmpwalk -v2c -c $community $ip $fnSysSerial | awk -F': ' '{print $2}' | tr -d '"'`)
-numcontract=(`sshpass -p $pass ssh -q -o StrictHostKeyChecking=no $user@177.154.136.140 diagnose fmupdate dbcontract fgd | grep -A1 $fgserial | grep Contract | awk -F': ' '{print $2}'`)
+numcontract=(`cat /var/tmp/zabbix/fortimanagerlic.tmp | grep -A1 $fgserial | grep Contract | awk -F': ' '{print $2}'`)
 let "grepexdate=$numcontract+1";
-lic=(`sshpass -p $pass ssh -q -o StrictHostKeyChecking=no $user@177.154.136.140 diagnose fmupdate dbcontract fgd | grep -A $grepexdate $fgserial | grep '-' | cut -d '-' -f 1 | sed -e 's/^[ \t]*//'`)
+lic=(`cat /var/tmp/zabbix/fortimanagerlic.tmp | grep -A $grepexdate $fgserial | grep '-' | cut -d '-' -f 1 | sed -e 's/^[ \t]*//'`)
 for i in "${lic[@]}"; do
   if [ $count -gt 0 ]; then
     printf ','
@@ -82,13 +82,12 @@ IFS=$OldIFS
 
 check_lic() {
   fgserial=(`snmpwalk -v2c -c $community $ip $fnSysSerial | awk -F': ' '{print $2}' | tr -d '"'`)
-  numcontract=(`sshpass -p $pass ssh -q -o StrictHostKeyChecking=no $user@177.154.136.140 diagnose fmupdate dbcontract fgd | grep -A1 $fgserial | grep Contract | awk -F': ' '{print $2}'`)
+  numcontract=(`cat /var/tmp/zabbix/fortimanagerlic.tmp | grep -A1 $fgserial | grep Contract | awk -F': ' '{print $2}'`)
   let "grepexdate=$numcontract+1";
   if [ "$numcontract" == "None" ]; then
     echo 255
   else
-    exdate=(`sshpass -p $pass ssh -q -o StrictHostKeyChecking=no $user@177.154.136.140 diagnose fmupdate dbcontract fgd | grep -A $grepexdate $fgserial | grep $lictype | grep '-' | cut -d '-' -f 4 | cut -d ":" -f 1`)
-    dt90exp=`date --date  "$exdate -90 days" +%Y%m%d 2>/dev/null`
+    exdate=(`cat /var/tmp/zabbix/fortimanagerlic.tmp | grep -A $grepexdate $fgserial | grep $lictype | grep '-' | cut -d '-' -f 4 | cut -d ":" -f 1`)
     dttoday=`date +%Y%m%d`
     if [ -z "$dt90exp" ]; then
       echo 99
@@ -107,12 +106,12 @@ lic_exp_date() {
   datenow=`date '+%Y-%m-%d'`
   convertdatenow=$(date --date=$datenow "+%s")
   fgserial=(`snmpwalk -v2c -c $community $ip $fnSysSerial | awk -F': ' '{print $2}' | tr -d '"'`)
-  numcontract=(`sshpass -p $pass ssh -q -o StrictHostKeyChecking=no $user@177.154.136.140 diagnose fmupdate dbcontract fgd | grep -A1 $fgserial | grep Contract | awk -F': ' '{print $2}'`)
+  numcontract=(`cat /var/tmp/zabbix/fortimanagerlic.tmp | grep -A1 $fgserial | grep Contract | awk -F': ' '{print $2}'`)
   let "grepexdate=$numcontract+1";
   if [ "$numcontract" == "None" ]; then
     echo 255
   else
-    exdate=(`sshpass -p $pass ssh -q -o StrictHostKeyChecking=no $user@177.154.136.140 diagnose fmupdate dbcontract fgd | grep -A $grepexdate $fgserial | grep $lictype | grep '-' | cut -d '-' -f 4 | cut -d ":" -f 1`)
+    exdate=(`cat /var/tmp/zabbix/fortimanagerlic.tmp | grep -A $grepexdate $fgserial | grep $lictype | grep '-' | cut -d '-' -f 4 | cut -d ":" -f 1`)
     convertstrtodate=$(date --date=$exdate "+%Y-%m-%d")
     convertdatetounix=$(date --date=$convertstrtodate "+%s")
     if [ $convertdatenow -gt $convertdatetounix ]; then
@@ -142,8 +141,6 @@ case "$1" in
   --sync)
     ip=$2
     community=$3
-    user=$4
-    pass=$5
     check_sync
   ;;
 esac
@@ -152,8 +149,6 @@ case "$1" in
   --conn)
     ip=$2
     community=$3
-    user=$4
-    pass=$5
     check_conn
   ;;
 esac
@@ -162,8 +157,6 @@ case "$1" in
   --discovery)
     ip=$2
     community=$3
-    user=$4
-    pass=$5
     lic_discovery
   ;;
 esac
@@ -172,9 +165,7 @@ case "$1" in
   --lic)
     ip=$2
     community=$3
-    user=$4
-    pass=$5
-    lictype=$6
+    lictype=$4
     check_lic
   ;;
 esac
@@ -183,12 +174,9 @@ case "$1" in
   --licexp)
     ip=$2
     community=$3
-    user=$4
-    pass=$5
-    lictype=$6
+    lictype=$4
     lic_exp_date
   ;;
 esac
 
 exit 0
-

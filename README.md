@@ -4,4 +4,8 @@ Download and import the tamplate "template_fg2fm_sync_lic.xml" to your Zabbix.
 
 Download the monitor script "fgcheckfm.sh" in externalscripts path on your Zabbix Server or Zabbix Proxy.
 
-On template, configure the macros {$user} and {$pass} with your Fortimanager's username and password and {$FG_LIC_TIME} with the expiration time's thresould.
+Download the script crtempfilesync.sh and crtempfilelic.sh in /scripts directory
+
+Copy the crontab file content and paste in crontab on your Zabbix Proxy or Zabbix Server.
+
+On template, configure the macro {$FG_LIC_TIME} with the expiration time's thresould.

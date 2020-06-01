@@ -35,7 +35,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>fgcheckfm.sh[--conn,{HOST.CONN},{$SNMP_COMMUNITY},{$USER},{$PASS}]</key>
+                    <key>fgcheckfm.sh[--conn,{HOST.CONN},{$SNMP_COMMUNITY}]</key>
                     <delay>300</delay>
                     <history>30</history>
                     <trends>180</trends>
@@ -80,7 +80,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>fgcheckfm.sh[--sync,{HOST.CONN},{$SNMP_COMMUNITY},{$USER},{$PASS}]</key>
+                    <key>fgcheckfm.sh[--sync,{HOST.CONN},{$SNMP_COMMUNITY}]</key>
                     <delay>300</delay>
                     <history>30</history>
                     <trends>180</trends>
@@ -126,7 +126,7 @@
                     <type>10</type>
                     <snmp_community/>
                     <snmp_oid/>
-                    <key>fgcheckfm.sh[--discovery,{HOST.CONN},{$SNMP_COMMUNITY},{$USER},{$PASS}]</key>
+                    <key>fgcheckfm.sh[--discovery,{HOST.CONN},{$SNMP_COMMUNITY}]</key>
                     <delay>86400</delay>
                     <status>0</status>
                     <allowed_hosts/>
@@ -160,7 +160,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>fgcheckfm.sh[--lic,{HOST.CONN},{$SNMP_COMMUNITY},{$USER},{$PASS},{#LIC}]</key>
+                            <key>fgcheckfm.sh[--lic,{HOST.CONN},{$SNMP_COMMUNITY},{#LIC}]</key>
                             <delay>86400</delay>
                             <history>30</history>
                             <trends>180</trends>
@@ -206,7 +206,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>fgcheckfm.sh[--licexp,{HOST.CONN},{$SNMP_COMMUNITY},{$USER},{$PASS},{#LIC}]</key>
+                            <key>fgcheckfm.sh[--licexp,{HOST.CONN},{$SNMP_COMMUNITY},{#LIC}]</key>
                             <delay>86400</delay>
                             <history>30</history>
                             <trends>180</trends>
@@ -247,7 +247,7 @@
                     </item_prototypes>
                     <trigger_prototypes>
                         <trigger_prototype>
-                            <expression>{TEMPLATE.GT_CHECK_FORTIMANAGER_TO_FORTIGATE:fgcheckfm.sh[--licexp,{HOST.CONN},{$SNMP_COMMUNITY},{$USER},{$PASS},{#LIC}].last(0)}&lt;{$FG_LIC_TIME}</expression>
+                            <expression>{TEMPLATE.GT_CHECK_FORTIMANAGER_TO_FORTIGATE:fgcheckfm.sh[--licexp,{HOST.CONN},{$SNMP_COMMUNITY},{#LIC}].last(0)}&lt;{$FG_LIC_TIME}</expression>
                             <name>{#LIC} EXPIRES IN LESS THAN 90 DIAS</name>
                             <url/>
                             <status>0</status>
@@ -266,14 +266,6 @@
                     <macro>{$FG_LIC_TIME}</macro>
                     <value>7776000</value>
                 </macro>
-                <macro>
-                    <macro>{$PASS}</macro>
-                    <value>O9jq2ZT7cMR5oqzDRKj18SFOgtD7Z9</value>
-                </macro>
-                <macro>
-                    <macro>{$USER}</macro>
-                    <value>MON_API</value>
-                </macro>
             </macros>
             <templates/>
             <screens/>
@@ -281,7 +273,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{TEMPLATE.GT_CHECK_FORTIMANAGER_TO_FORTIGATE:fgcheckfm.sh[--conn,{HOST.CONN},{$SNMP_COMMUNITY},{$USER},{$PASS}].min(900)}=0</expression>
+            <expression>{TEMPLATE.GT_CHECK_FORTIMANAGER_TO_FORTIGATE:fgcheckfm.sh[--conn,{HOST.CONN},{$SNMP_COMMUNITY}].max(#3)}=0</expression>
             <name>CONNECTION WITH FORTIMANAGER IS DOWN</name>
             <url/>
             <status>0</status>
@@ -291,7 +283,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{TEMPLATE.GT_CHECK_FORTIMANAGER_TO_FORTIGATE:fgcheckfm.sh[--sync,{HOST.CONN},{$SNMP_COMMUNITY},{$USER},{$PASS}].min(900)}=0</expression>
+            <expression>{TEMPLATE.GT_CHECK_FORTIMANAGER_TO_FORTIGATE:fgcheckfm.sh[--sync,{HOST.CONN},{$SNMP_COMMUNITY}].max(#3)}=0</expression>
             <name>SYNCHRONIZATION WITH FORTIMANAGER IS FAIL</name>
             <url/>
             <status>0</status>
