@@ -9,5 +9,4 @@
 ## Created: May, 31 2020   Rafael Magalhães      Unknown changes              ##
 ##----------------------------------------------------------------------------##
 
-tempfile=(`sshpass -p $2 ssh -q -o StrictHostKeyChecking=no $1@177.154.136.140 diagnose fmupdate dbcontract fgd`)
-cat $tempfile > /var/tmp/zabbix/fortimanagerlic.tmp
+sshpass -p $2 ssh -q -o StrictHostKeyChecking=no $1@177.154.136.140 diagnose fmupdate dbcontract fgd > /var/tmp/zabbix/fortimanagerlic.tmp
